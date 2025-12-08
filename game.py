@@ -68,8 +68,13 @@ async def handle_message(message):
     elif message.text == "Play":
         await bot.send_message(message.chat.id,"Coming soon")
 
-    elif message.text == "Check statistics":
-        await bot.send_message(message.chat.id,"Coming soon")
+    elif message.text == "Check statistics": ## Check statistics of all players, in future if list is too big, will split it by hundreds
+        place = 1
+        accounts_sorted_by_trophies = sorted(accounts.items(), key=lambda x: x[1]["trophies"], reverse=True)
+        for account, trophies in accounts_sorted_by_trophies:
+            await bot.send_message(message.chat.id, f"({place}) {accounts[account]["username"]} : {accounts[account]['trophies']}")
+            place += 1
+
 
     elif message.text == "My Info":
         if user_id in accounts:
