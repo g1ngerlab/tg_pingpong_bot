@@ -9,6 +9,7 @@ bot = AsyncTeleBot(token)
 
 
 accounts_file = "accounts.json"
+ranks = ["Junior", "Mid", "Senior", "Cisco Master","Goat", "Ago", "Jaan Penjam"]
 if os.path.exists(accounts_file):
     with open(accounts_file, "r") as f:
         accounts = json.load(f)
@@ -25,8 +26,11 @@ def nickname_unique(name: str) -> bool:
             return False
     return True
 
-
+usernames = {}
+for uid in accounts:
+    usernames[accounts[uid]["username"]] = uid
 user_states = {}
+print(usernames)
 
 @bot.message_handler(commands=['start']) ## Menu that pops up after /start command
 async def start(message):
@@ -39,9 +43,10 @@ async def handle_message(message):
 
     user_id = str(message.from_user.id)
 
-    if user_id in user_states:
-        if user_states[user_id] == "choosing_nickname":
+    if user_id in user_states: ## Handle user states
+        if user_states[user_id] == "choosing_nickname": ## User is choosing nickname
             nickname = message.text.strip()
+        
 
             if not nickname_unique(nickname):
                 await bot.send_message(message.chat.id, f"Nickname {nickname} already exists")
@@ -49,6 +54,7 @@ async def handle_message(message):
 
             accounts[user_id] = {
                 "username": nickname,
+                "rank" : "Junior",
                 "trophies": 0,
                 "wins": 0,
                 "losses": 0,
@@ -57,6 +63,14 @@ async def handle_message(message):
             save_accounts()
             user_states[user_id] = None
             await bot.send_message(message.chat.id, f"Account created your nickname is: {nickname} ")
+
+        if user_states[user_id] == "choosing_opponent":
+            opponent_nickname = message.text.strip()
+            if opponent_nickname not in usernames.keys():
+                await bot.send_message(message.chat.id, f"There is no such player. Try again...")
+            else:
+                await bot.send_message(message.chat.id, f"You chose {opponent_nickname}, sending match request")
+
 
     if message.text == "Create account":
         if user_id in accounts:
@@ -67,6 +81,8 @@ async def handle_message(message):
 
     elif message.text == "Play":
         await bot.send_message(message.chat.id,"Coming soon")
+        await bot.send_message(message.chat.id, "Choose Player to play against...")
+        user_states[user_id] = "choosing_opponent"
 
     elif message.text == "Check statistics": ## Check statistics of all players, in future if list is too big, will split it by hundreds
         place = 1
@@ -81,6 +97,7 @@ async def handle_message(message):
             await bot.send_message(message.chat.id, "Your info:")
             await bot.send_message(message.chat.id,
                                    "Nickname: " + str(accounts[user_id]["username"]) + "\n"
+                                    "Rank: " + str(accounts[user_id]["rank"]) + "\n"
                                    "Games: " + str(accounts[user_id]["games"]) + "\n"
                                    "Wins: " + str(accounts[user_id]["wins"]) + "\n"
                                    "Losses: " + str(accounts[user_id]["losses"]) + "\n"
