@@ -4,15 +4,18 @@ import asyncio
 from telebot.async_telebot import AsyncTeleBot
 from telebot import types
 import random
+from dotenv import load_dotenv
 
-token = os.getenv("MY_VAR") ## Environmental variable
+load_dotenv()
+
+token = os.getenv("TOKEN") ## Environmental variable
 bot = AsyncTeleBot(token)
 
 current_matches = {} ## format - {opponent id : self id}
 active_games = {}
 
 accounts_file = "accounts.json"
-ranks = ["Junior", "Mid", "Senior", "Cisco Master","Goat", "Ago", "Jaan Penjam"]
+ranks = ["Junior", "Mid", "Senior", "Cisco Master","Goat", "Ago", "Jaan Penjam"] ##Ranks
 if os.path.exists(accounts_file):
     with open(accounts_file, "r") as f:
         accounts = json.load(f)
@@ -69,11 +72,11 @@ async def handle_message(message):
 
         if user_states[user_id] == "choosing_opponent":
             opponent_nickname = message.text.strip()
-            opponent_user_id = usernames[opponent_nickname]
             if opponent_nickname not in usernames.keys():
                 await bot.send_message(message.chat.id, f"There is no such player. Try again...")
                 user_states[user_id] = None
                 return
+            opponent_user_id = usernames[opponent_nickname]
             if opponent_user_id == user_id:
                 await bot.send_message(message.chat.id, f"You chose yourself, how smart haHAha...")
                 user_states[user_id] = None
@@ -160,6 +163,7 @@ async def handle_message(message):
             trophies_lost = random.randint(28, 33)
 
             accounts[winner]["wins"] += 1
+            accounts[loser]["losses"] += 1
             accounts[winner]["games"] += 1
             accounts[loser]["games"] += 1
             accounts[winner]["trophies"] += trophies_won
